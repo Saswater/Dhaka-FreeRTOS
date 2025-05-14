@@ -20,7 +20,11 @@
 #define CHK_PTR(PTR)    if (!PTR) ERR("malloc failed on line %d, file %s\n", __LINE__, __FILE__)
 
 #define INVALID_KEY     (uint64_t)0
-#define FREEABLE        (uint8_t)1
 #define DEBUG           1
+
+typedef enum {
+    FREEABLE,
+    NON_FREEABLE
+} PtrFreeable;
 
 #endif

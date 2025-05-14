@@ -8,8 +8,8 @@ lmap_node* lmap_start = (lmap_node*)NULL;
 addr_node* llist_start = (addr_node*)NULL;
 
 typedef struct {
-    int x;
     int* y;
+    int x;
 } test_s;
 
 
@@ -48,13 +48,29 @@ int add_to_lists(void) {
     foo->y = MALLOC_T(int);
     lmap_add(&lmap_start, &llist_start, (uintptr_t)(foo->y), (uintptr_t)(foo->y), (uintptr_t)(foo->y) + sizeof(int), FREEABLE);
     print_vars();
-    
+
+    // pointer copying/arithmetic propagates the metadata
+    //      while unmodified pointer copying doesn't necessitate duplication of lmap entries,
+    //      in my case, it makes it a lot more consistent and easier to script into C if I treat them the same
+    int* copy = foo->y;
+    lmap_add(&lmap_start, &llist_start, (uintptr_t)copy, (uintptr_t)(foo->y), (uintptr_t)(foo->y) + sizeof(int), NON_FREEABLE);
+    // we only have to free ptrs that were directly returned by malloc!
+
+    // pointer arithmetic!
+    int* new = foo->y + 1;
+    // the addr (key for lmap) is ALWAYS the new pointer's value, but the base is the pointer that this is based off
+    //      NOTE: POSSIBLE ISSUE! can't use a pointer within a struct to access other elts of the struct. maybe okay?
+    lmap_add(&lmap_start, &llist_start, (uintptr_t)new, (uintptr_t)(foo->y), (uintptr_t)(foo->y) + sizeof(int), NON_FREEABLE);
 
     // now, frees and deletes go hand in hand for each malloc
+    // deleting two entries of the same ptr address... but is okay, because duplicates are allowed in lmap
+    // NOTE: the program needs to ensure that everything has been freed
+    lmap_del(&lmap_start, &llist_start, (uintptr_t)new);
+    lmap_del(&lmap_start, &llist_start, (uintptr_t)copy);       // FIX WITH FIND~!
     lmap_del(&lmap_start, &llist_start, (uintptr_t)(foo->y));
     free(foo->y);
     print_vars();
-    // NOTE: NEED TO FREE STRUCT MEMBERS BEFORE STRUCT ITSELF!!!
+    // NOTE: to free a struct, NEED TO FREE STRUCT MEMBERS BEFORE STRUCT ITSELF!!!
 
     lmap_del(&lmap_start, &llist_start, (uintptr_t)foo);
     free(foo);

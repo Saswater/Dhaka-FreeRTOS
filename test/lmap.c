@@ -11,7 +11,7 @@ typedef struct ptr_meta_s {
 	uintptr_t base_addr;
 	uintptr_t bound_addr;
 	uint64_t* lock_addr;
-	uint8_t freeable;	// maybeee?  
+	PtrFreeable freeable;  
 } ptr_meta;
 
 typedef struct lmap_node_s {
@@ -61,14 +61,13 @@ void lmap_print(lmap_node* start) {
 }
 
 
-
 lmap_node* lmap_add(
     lmap_node** lmap_start,
     addr_node** llist_start,
     uintptr_t addr,
     uintptr_t base,
     uintptr_t bound,
-    uint8_t freeable
+    PtrFreeable freeable
 ) {
     if (!addr) {
         DBG("Will not map a NULL ptr - returning!");
@@ -98,7 +97,7 @@ lmap_node* lmap_add(
 }
 
 
-// Deletes the first node with a matching addr, including its LOCKED ADDRESS's entry in the llist.
+// Deletes all nodes with matching addrs, including their LOCKED ADDRESSes' entries in the llist.
 void lmap_del(
     lmap_node** lmap_start,
     addr_node** llist_start,
@@ -106,10 +105,12 @@ void lmap_del(
 ) {
     lmap_node* curr_node = *lmap_start;
     lmap_node* prev_node = (lmap_node*)NULL;
+    uint_fast8_t found = 0;
 
     while (curr_node) {
         if (curr_node->addr == addr) {
             // match found!
+            found = 1;
             // need to fill in gap!
             //      if start (no prev node), NEED TO CHANGE GLOBAL START
             //      if mid or end, then change prev_node->next to curr_node->next
@@ -126,15 +127,21 @@ void lmap_del(
             // free the node
             free((void*)curr_node);
 
+            // NOTE: uncomment if you only want the first entry to be deleted
             return;
+        } else {
+            // only move prev_node forward if curr_node hasn't been deleted
+            prev_node = curr_node;
         }
-
-        prev_node = curr_node;
-        curr_node = curr_node->next;
+        
+        if (prev_node)
+            curr_node = prev_node->next;
+        else
+            curr_node = *lmap_start;
     }
 
-    // no match found
-    ERR("No match found for %p when trying to delete an lmap_node\n", (void*)addr);
+    if (!found)
+        ERR("No match found for %p when trying to delete an lmap_node\n", (void*)addr);
 }
 
 
