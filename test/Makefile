@@ -12,16 +12,18 @@ CFLAGS		+= -m32 -no-pie -fno-pic -ggdb3 -Wall -Wpedantic \
 
 LLIST = llist
 LMAP  = lmap
+TEST1 = test1
 
 EXT   = .elf
-BINS += ${LLIST}${EXT} ${LMAP}${EXT}
+BINS += ${LLIST}${EXT} ${LMAP}${EXT} ${TEST1}${EXT}
 
 # SRCS += ${LLIST}.c ${LMAP}.c
 
 
-.PHONY: all llist_run llist_dbg lmap_run lmap_dbg clean
+.PHONY: all t1run t1dbg clean
 
-all: ${LLIST} ${LMAP}
+# all: ${LLIST} ${LMAP}
+all: ${TEST1}
 
 
 # loading screen tip: Makefile cmd will be executed if the dependencies change
@@ -29,24 +31,32 @@ all: ${LLIST} ${LMAP}
 # build llist
 llist: $(LLIST).c
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $(LLIST)${EXT}
-# run llist with settings
-llist_run: $(LLIST)${EXT}
-	$(RUNAS) $(ENV) ./$<
-# debug llist with gdb
-llist_dbg: $(LLIST)${EXT}
-	$(RUNAS) $(DBG) -iex=$(DBG_CMD) ./$<
+# # run llist with settings
+# llist_run: $(LLIST)${EXT}
+# 	$(RUNAS) $(ENV) ./$<
+# # debug llist with gdb
+# llist_dbg: $(LLIST)${EXT}
+# 	$(RUNAS) $(DBG) -iex=$(DBG_CMD) ./$<
 
 
 # build lmap
 lmap: $(LMAP).c
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $(LMAP)${EXT}
 
-lmap_run: $(LMAP)${EXT}
+# lmap_run: $(LMAP)${EXT}
+# 	$(RUNAS) $(ENV) ./$<
+# lmap_dbg: $(LMAP)${EXT}
+# 	$(RUNAS) $(DBG) -iex=$(DBG_CMD) ./$<
+
+
+test1: ${TEST1}.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o ${TEST1}${EXT}
+
+t1run: ${TEST1}${EXT}
 	$(RUNAS) $(ENV) ./$<
 
-lmap_dbg: $(LMAP)${EXT}
+t1dbg: ${TEST1}${EXT}
 	$(RUNAS) $(DBG) -iex=$(DBG_CMD) ./$<
-
 
 
 clean:

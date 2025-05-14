@@ -1,3 +1,6 @@
+#ifndef LLIST_C
+#define LLIST_C
+
 #include "main.h"
 
 
@@ -15,11 +18,13 @@ typedef struct addr_node_s {
 void llist_print(addr_node* start) {
     addr_node* curr_node = start;
     
-    while (curr_node != (addr_node*)NULL) {
-        if (curr_node->lock_addr == (uint64_t*)NULL)
-            printf("Current node: empty.\n");
-        else
-            printf("Current node: %p\n", (void*)curr_node->lock_addr);
+    while (curr_node) {
+        if (!curr_node->lock_addr) {
+            DBG("Current llist node: empty.\n");
+        } else {
+            DBG("\nLList:\nCurrent lock addr: %p\nLock value: %llu\n\n",
+                (void*)curr_node->lock_addr, *(curr_node->lock_addr));
+        }
         curr_node = curr_node->next;
     }
     
@@ -30,12 +35,12 @@ void llist_print(addr_node* start) {
 // Add a new lockaddr node to the beginning of the llist.
 addr_node* add_addr(addr_node** start, uint64_t key) {
     addr_node* new_node = MALLOC_T(addr_node);                                      /*MALLOC*/
-    chk_ptr((void*)new_node);
+    CHK_PTR((void*)new_node);
 
     // alloc a new lock lock_addr
     // uint64_t* new_lock = (uint64_t*)malloc(sizeof(uint64_t));
     new_node->lock_addr = MALLOC_T(uint64_t);                                            /*MALLOC*/
-    chk_ptr(new_node->lock_addr);
+    CHK_PTR(new_node->lock_addr);
     *(new_node->lock_addr) = key;
 
     // append the new node to the beginning of the llist by setting its next to the old start
@@ -78,8 +83,9 @@ void del_lockaddr(addr_node** start, uint64_t* lock_addr) {
     }
 
     // no match found
-    err("No match found when trying to delete an addr_node\n");
+    ERR("No match for lockaddr %p when trying to delete an addr_node\n", (void*)lock_addr);
 }
 
 
-int main() {return 0;}
+
+#endif

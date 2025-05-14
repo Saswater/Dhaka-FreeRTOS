@@ -1,4 +1,7 @@
-// #include "main.h"
+#ifndef LMAP_C
+#define LMAP_C
+
+#include "main.h"
 #include "llist.c"
 
 // Types
@@ -6,7 +9,7 @@
 typedef struct ptr_meta_s {
     uint64_t key;
 	uintptr_t base_addr;
-	uintptr_t bound;
+	uintptr_t bound_addr;
 	uint64_t* lock_addr;
 	uint8_t freeable;	// maybeee?  
 } ptr_meta;
@@ -17,7 +20,7 @@ typedef struct lmap_node_s {
     struct lmap_node_s* next;
 } lmap_node;
 
-
+// uint64_t* lock_persist;
 // GLOBALS
 uint64_t key_cnt = 0;
 // always points to the start of the list
@@ -42,10 +45,15 @@ void lmap_print(lmap_node* start) {
     lmap_node* curr_node = start;
     
     while (curr_node) {
-        if (!curr_node->addr)
-            printf("Current node: empty.\n");
-        else
-            printf("Current node: %p\n", (void*)curr_node->addr);
+        if (!curr_node->addr) {
+            DBG("Current lmap node: empty.\n");
+        } else {
+            DBG("\nLMap:\nCurrent ptr addr: %p\nMetadata key: %llu\nbase: %p, bound: %p\nlock addr: %p\nfreeable: %u\n",
+                (void*)curr_node->addr, curr_node->metadata->key, (void*)curr_node->metadata->base_addr,
+                (void*)curr_node->metadata->bound_addr, (void*)curr_node->metadata->lock_addr, curr_node->metadata->freeable);
+            // lock_persist = curr_node->metadata->lock_addr;
+            // DBG("Lockaddr key:%llu\n\n\n", *lock_persist);
+        }
         curr_node = curr_node->next;
     }
     
@@ -62,14 +70,19 @@ lmap_node* lmap_add(
     uintptr_t bound,
     uint8_t freeable
 ) {
+    if (!addr) {
+        DBG("Will not map a NULL ptr - returning!");
+        return NULL;
+    }
+
     // ptr_meta* mtdt = (ptr_meta*)malloc(sizeof(ptr_meta));
     ptr_meta* mtdt = MALLOC_T(ptr_meta);                                                /*MALLOC*/
-    chk_ptr((void*)mtdt);
+    CHK_PTR((void*)mtdt);
     lmap_node* new_node = MALLOC_T(lmap_node);                                          /*MALLOC*/
-    chk_ptr((void*)new_node);
+    CHK_PTR((void*)new_node);
 
     mtdt->base_addr = base;
-    mtdt->bound = bound;
+    mtdt->bound_addr = bound;
     mtdt->freeable = freeable;
     mtdt->key = new_key();
     // this changes the global llist_start
@@ -121,7 +134,8 @@ void lmap_del(
     }
 
     // no match found
-    err("No match found when trying to delete an addr_node\n");
+    ERR("No match found for %p when trying to delete an lmap_node\n", (void*)addr);
 }
 
 
+#endif
