@@ -10,41 +10,32 @@ LDFLAGS		+= -z norelro
 CFLAGS		+= -m32 -no-pie -fno-pic -ggdb3 -Wall -Wpedantic \
 			-Wno-stringop-overflow
 
-LMAP  = lmap
-TEST1 = test1
+LMAP  = linked_map
+TEST1 = posix_test
+DHAKA = dhaka
 
 EXT   = .elf
-BINS += ${LMAP}${EXT} ${TEST1}${EXT}
+BINS += ${TEST1}${EXT}
 
-# SRCS += ${LLIST}.c ${LMAP}.c
+SRCS += posix_test.c ${LMAP}.c ${DHAKA}.c main.h
 
 
-.PHONY: all t1run t1dbg clean
+.PHONY: all 1run 1dbg clean
 
-# all:${LMAP}
-all: ${TEST1}
+
+all: ${TEST1} 1run
 
 
 # loading screen tip: Makefile cmd will be executed if the dependencies change
 
 
-# build lmap
-lmap: $(LMAP).c
-	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $(LMAP)${EXT}
-
-# lmap_run: $(LMAP)${EXT}
-# 	$(RUNAS) $(ENV) ./$<
-# lmap_dbg: $(LMAP)${EXT}
-# 	$(RUNAS) $(DBG) -iex=$(DBG_CMD) ./$<
-
-
-test1: ${TEST1}.c
+${TEST1}: ${TEST1}.c ${SRCS}
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o ${TEST1}${EXT}
 
-t1run: ${TEST1}${EXT}
+1run: ${TEST1}${EXT} ${SRCS}
 	$(RUNAS) $(ENV) ./$<
 
-t1dbg: ${TEST1}${EXT}
+1dbg: ${TEST1}${EXT} ${SRCS}
 	$(RUNAS) $(DBG) -iex=$(DBG_CMD) ./$<
 
 

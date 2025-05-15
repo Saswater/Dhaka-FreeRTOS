@@ -3,44 +3,25 @@
 
 #include "main.h"
 
-// Types
-// all the metadata
-typedef struct ptr_meta_s {
-    uint64_t key;
-	uintptr_t base_addr;
-	uintptr_t bound_addr;
-	uint64_t* lock_addr;
-	PtrFreeable freeable;  
-} ptr_meta;
+#define LMAP_ADD(ADDR,BASE,SIZE,ENUM_FREE)                      \
+    lmap_add(&lmap_start, (uintptr_t)ADDR, (uintptr_t)BASE,     \
+            (uintptr_t)BASE + (uintptr_t)SIZE, ENUM_FREE);      
 
-typedef struct lmap_node_s {
-    ptr_meta* metadata;  // value
-    uintptr_t addr;      // key
-    struct lmap_node_s* next;
-} lmap_node;
+#define LMAP_DEL(PTR)                                           \
+    lmap_del(&lmap_start, (uintptr_t)PTR)
 
-// uint64_t* lock_persist;
+    
 // GLOBALS
 uint64_t key_cnt = INVALID_KEY + 1;
-// always points to the start of the list
-// lmap_node* lmap_start = (lmap_node*)NULL;
-// lmap_node lmap_start = {{0}, (uintptr_t)NULL, (lmap_node*)NULL};
 
-// Prints all the nodes.
-void lmap_print(lmap_node*);
-// Insert a node at the beginning of the lmap.
-// lmap_node* lmap_add(uintptr_t, uintptr_t, uintptr_t, uint8_t);
 
+// FUNCTIONS
 
 // Can be modified, e.g. using a hash func or srand
 uint64_t new_key() {
     key_cnt++;
     return key_cnt;
 }
-
-
-
-
 
 // Creates a new lock, initialises it with the key, and returns its address.
 uint64_t* new_lock(uint64_t key) {
@@ -51,11 +32,8 @@ uint64_t* new_lock(uint64_t key) {
     return lock_addr;
 }
 
-
-
 void lmap_print(lmap_node* start) {
     lmap_node* curr_node = start;
-    
     while (curr_node) {
         if (!curr_node->addr) {
             DBG("Current lmap node: empty.\n");
@@ -63,15 +41,10 @@ void lmap_print(lmap_node* start) {
             DBG("\nLMap:\nCurrent ptr addr: %p\nMetadata key: %llu\nbase: %p, bound: %p\nlock addr: %p\nfreeable: %u\n",
                 (void*)curr_node->addr, curr_node->metadata->key, (void*)curr_node->metadata->base_addr,
                 (void*)curr_node->metadata->bound_addr, (void*)curr_node->metadata->lock_addr, curr_node->metadata->freeable);
-            // lock_persist = curr_node->metadata->lock_addr;
-            // DBG("Lockaddr key:%llu\n\n\n", *lock_persist);
         }
         curr_node = curr_node->next;
     }
-    
-    return;
 }
-
 
 lmap_node* lmap_find(lmap_node* start, uintptr_t addr) {
     lmap_node* curr_node = start;
@@ -84,7 +57,6 @@ lmap_node* lmap_find(lmap_node* start, uintptr_t addr) {
 
     return NULL;
 }
-
 
 lmap_node* lmap_add(
     lmap_node** lmap_start,
@@ -139,7 +111,6 @@ lmap_node* lmap_add(
     *lmap_start = new_node;
     return new_node;
 }
-
 
 // Deletes the first/all node(s) with matching addrs, along with all associated information like the lock.
 //  Frees the ptr, if FREEABLE.
@@ -196,32 +167,6 @@ void lmap_del(
         ERR("No match found for %p when trying to delete an lmap_node\n", (void*)addr);
 }
 
-
-// NOTE: access_sz is the size of the actual access that's happening
-void chk_ptr_access(
-    lmap_node* lmap_start,
-    uintptr_t addr,
-    size_t access_sz
-) {
-    lmap_node* found_node = lmap_find(lmap_start, addr);
-    if (!found_node) {
-        // ptr doesn't exist - bad instrumentation, or intentional corruption
-        ERR("Pointer %p wasn't found in lmap!\n", (void*)addr);
-    }
-
-    // Shyamoli
-    if ((addr < found_node->metadata->base_addr) || (addr + (uintptr_t)access_sz > found_node->metadata->bound_addr)) {
-        // can change this handler easily
-        ERR("Spatial memory violation detected by Shyamoli: %p is out of the bounds %p to %p!\n",
-            (void*)addr, (void*)(found_node->metadata->base_addr), (void*)(found_node->metadata->bound_addr));
-    }
-
-    // Chhayanaut
-    if (found_node->metadata->key != *(found_node->metadata->lock_addr)) {
-        ERR("Temporal memory violation detected by Chhayanaut: %p's key (%llu) and lock (%llu) don't match!\n",
-            (void*)addr, found_node->metadata->key, *(found_node->metadata->lock_addr));
-    }
-}
 
 
 #endif
