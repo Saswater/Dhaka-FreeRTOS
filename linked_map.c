@@ -10,7 +10,7 @@
 #define LMAP_DEL(PTR)                                           \
     lmap_del(&lmap_start, (uintptr_t)PTR)
 
-    
+
 // GLOBALS
 uint64_t key_cnt = INVALID_KEY + 1;
 
@@ -69,12 +69,6 @@ lmap_node* lmap_add(
         DBG("Will not map a NULL ptr!");
         return NULL;
     }
-    // avoid duplicates, since the same addr should have the same key
-    //      actually, should be okay! we can just copy over the details
-    // if (lmap_find(*lmap_start, addr)) {
-    //     DBG("Address %p already exists in lmap - not adding again!\n", (void*)addr);
-    //     return NULL;
-    // }
     
     ptr_meta* mtdt = MALLOC_T(ptr_meta);                                                /*MALLOC*/
     CHK_PTR((void*)mtdt);
@@ -84,12 +78,7 @@ lmap_node* lmap_add(
     // the following is based on the assumption that if two addrs (key) are the same in the lmap,
     //      then their metadata->base_addrs will also be the same (vice versa not necessarily true)
     //      could add checks for this?
-    // lmap_node* base_node = lmap_find(*lmap_start, addr);
-    // if base =/= addr (due to ptr arithmetic), then base could also already exist
-    //      if so, propagate metadata!
     lmap_node* base_node = lmap_find(*lmap_start, base);
-    // if (!base_node)
-    //     base_node = lmap_find(*lmap_start, base);
     if (base_node) {
         DBG("Base %p already exists in lmap - copying metadata!\n", (void*)addr);
         *mtdt = *(base_node->metadata);
@@ -141,7 +130,6 @@ void lmap_del(
             
             // since we're getting rid of this entry, we should reset and free the associated lock, too
             //      NOTE: possible to do this w/o having the entire dedicated llist structure
-            // del_lockaddr(llist_start, curr_node->metadata->lock_addr);
             *(curr_node->metadata->lock_addr) = INVALID_KEY;
             free((void*)(curr_node->metadata->lock_addr));
 
