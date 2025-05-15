@@ -20,7 +20,7 @@ BINS += ${TEST1}${EXT}
 SRCS += posix_test.c ${LMAP}.c ${DHAKA}.c ${DHAKA}.h
 
 
-.PHONY: all 1run 1dbg clean
+.PHONY: all 1run dbg clean
 
 
 all: ${TEST1} 1run
@@ -35,7 +35,7 @@ ${TEST1}: ${TEST1}.c ${SRCS}
 1run: ${TEST1}${EXT} ${SRCS}
 	$(RUNAS) $(ENV) ./$<
 
-1dbg: ${TEST1}${EXT} ${SRCS}
+dbg: ${TEST1}${EXT} ${SRCS}
 	$(RUNAS) $(DBG) -iex=$(DBG_CMD) ./$<
 
 
