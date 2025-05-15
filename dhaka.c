@@ -1,7 +1,7 @@
 #ifndef DHAKA
 #define DHAKA
 
-#include "main.h"
+#include "dhaka.h"
 #include "linked_map.c"
 
 #define CHK_ACCESS(PTR)        chk_ptr_access(lmap_start, (uintptr_t)PTR, sizeof(*PTR))

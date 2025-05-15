@@ -1,7 +1,7 @@
 #ifndef LMAP_C
 #define LMAP_C
 
-#include "main.h"
+#include "dhaka.h"
 
 #define LMAP_ADD(ADDR,BASE,SIZE,ENUM_FREE)                      \
     lmap_add(&lmap_start, (uintptr_t)ADDR, (uintptr_t)BASE,     \

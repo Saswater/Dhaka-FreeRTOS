@@ -1,8 +1,8 @@
-#include "main.h"
+#include "dhaka.h"
 #include "linked_map.c"
 #include "dhaka.c"
 
-// GLOBALS
+// REQUIRED
 lmap_node* lmap_start = (lmap_node*)NULL;
 
 typedef struct {
@@ -130,4 +130,7 @@ int examples_hardened(void) {
 }
 
 
-int main(void) {return examples_hardened();}
+int main(void) {
+    return examples_hardened();
+    // return examples();
+}

@@ -17,7 +17,7 @@ DHAKA = dhaka
 EXT   = .elf
 BINS += ${TEST1}${EXT}
 
-SRCS += posix_test.c ${LMAP}.c ${DHAKA}.c main.h
+SRCS += posix_test.c ${LMAP}.c ${DHAKA}.c ${DHAKA}.h
 
 
 .PHONY: all 1run 1dbg clean
